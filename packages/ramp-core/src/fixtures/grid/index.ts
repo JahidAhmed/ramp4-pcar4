@@ -24,7 +24,7 @@ class GridFixture extends FixtureConfigHelper {
           }
         }
 
-        const pApi3 = this.$iApi.panel.open(gridPanel);
+        // const pApi3 = this.$iApi.panel.open(gridPanel);
     }
 }
 

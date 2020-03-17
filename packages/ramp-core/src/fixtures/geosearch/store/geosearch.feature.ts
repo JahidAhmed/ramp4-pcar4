@@ -80,23 +80,22 @@ export class GeoSearchUI {
      * @param {string} q the search string this query is based on
      * @return {Promise}
      */
-    query(q: string) {
-        return (<any>this)._geoSearchObj.query(q.toUpperCase()).onComplete.then((q: any) => {
-            let featureResult: any[] = [];
-            let queryResult = q.results.map((item: any) => ({
-                name: item.name,
-                bbox: item.bbox,
-                type: item.type,
-                position: [item.LatLon.lon, item.LatLon.lat],
-                location: {
-                    city: item.location,
-                    latitude: item.LatLon.lat,
-                    longitude: item.LatLon.lon,
-                    province: this.findProvinceObj(item.province)
-                }
-            }));
-            return featureResult.concat(queryResult);
-        });
+    async query(q: string) {
+        const response = await (<any>this)._geoSearchObj.query(q.toUpperCase()).onComplete
+        let featureResult: any[] = [];
+        let queryResult = response.results.map((item: any) => ({
+            name: item.name,
+            bbox: item.bbox,
+            type: item.type,
+            position: [item.LatLon.lon, item.LatLon.lat],
+            location: {
+                city: item.location,
+                latitude: item.LatLon.lat,
+                longitude: item.LatLon.lon,
+                province: this.findProvinceObj(item.province)
+            }
+        }));
+        return featureResult.concat(queryResult);
     }
 
     /**

@@ -697,7 +697,7 @@ export default class SymbologyService extends BaseBase {
      * @returns {Promise} resolves in an array of legend data in arcgis server json format
      *
      */
-    private getMapServerLegend(layerUrl: string): Promise<any> {
+    private async getMapServerLegend(layerUrl: string): Promise<any> {
 
         // standard json request with error checking
         const reqParams: esri.RequestOptions = {
@@ -705,16 +705,16 @@ export default class SymbologyService extends BaseBase {
         };
         const serviceRequest: Promise<esri.RequestResponse> = this.esriBundle.esriRequest(`${layerUrl}/legend`, reqParams);
 
-        return serviceRequest.then(srvResult => {
-
-           return srvResult.data;
-
-        }).catch((error: any) => {
+        try {
+            const srvResult = await serviceRequest;
+            return srvResult.data;
+        }
+        catch (error) {
             console.error('error loading legend', error);
             // TODO might want to not error. missing legend is not catastrophic.
             //      instead, may want to generate fake json that will create an empty legend / error legend and return that.
             throw new Error('problem loading legend from server, details on console');
-        });
+        }
 
     }
 

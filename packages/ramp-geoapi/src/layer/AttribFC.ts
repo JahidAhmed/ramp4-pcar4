@@ -293,7 +293,7 @@ export default class AttribFC extends BaseFC {
      *                 - getAttribs    boolean. indicates if return value should have attributes included. default to false
      * @returns {Promise} resolves with a bundle of information. .graphic is the graphic; .layerFC for convenience
      */
-    getGraphic (objectId: number, opts: GetGraphicParams): Promise<GetGraphicResult> {
+    async getGraphic (objectId: number, opts: GetGraphicParams): Promise<GetGraphicResult> {
         // TODO RAMP2 version of this included the FC object. we want to keep those hidden, so
         //      for now will just return the graphic structure and if we need more stuff we
         //      will figure out a proper way to do that.
@@ -390,38 +390,34 @@ export default class AttribFC extends BaseFC {
                 }
             }
 
-            return this.gapi.utils.attributes.loadSingleFeature(serviceParams).then(webFeat => {
-                if (needWebGeom) {
-                    // save our result in the cache
-                    this.quickCache.setGeom(objectId, webFeat.geometry, scale);
-                    resultFeat.geometry = webFeat.geometry;
+            const webFeat = await this.gapi.utils.attributes.loadSingleFeature(serviceParams);
+            if (needWebGeom) {
+                // save our result in the cache
+                this.quickCache.setGeom(objectId, webFeat.geometry, scale);
+                resultFeat.geometry = webFeat.geometry;
+            }
+            if (needWebAttr || this.isUn(this.quickCache.getAttribs(objectId))) {
+                // extra check in the if is for efficiency. attributes get downloaded in the request
+                // regardless if we wanted them. if we didn't want them, but didn't have them cached,
+                // will cache them anyways to save another hit later.
+                this.quickCache.setAttribs(objectId, webFeat.attributes);
+                if (needWebAttr) {
+                    // only put attribs on the result if requester asked for them
+                    resultFeat.attributes = webFeat.attributes;
                 }
-
-                if (needWebAttr || this.isUn(this.quickCache.getAttribs(objectId))) {
-                    // extra check in the if is for efficiency. attributes get downloaded in the request
-                    // regardless if we wanted them. if we didn't want them, but didn't have them cached,
-                    // will cache them anyways to save another hit later.
-                    this.quickCache.setAttribs(objectId, webFeat.attributes);
-
-                    if (needWebAttr) {
-                        // only put attribs on the result if requester asked for them
-                        resultFeat.attributes = webFeat.attributes;
-                    }
-                }
-
-                return resultFeat;
-            });
+            }
+            return resultFeat;
 
         } else {
             // no need for web requests. everything was available locally
-            return attribWaitPromise.then(() => resultFeat);
+            await attribWaitPromise;
+            return resultFeat;
         }
     }
 
-    getIcon (objectId: number): Promise<string> {
-        return this.getGraphic(objectId, { getAttribs: true }).then(g => {
-            return this.gapi.utils.symbology.getGraphicIcon(g.attributes, this.renderer);
-        });
+    async getIcon (objectId: number): Promise<string> {
+        const g = await this.getGraphic(objectId, { getAttribs: true });
+        return this.gapi.utils.symbology.getGraphicIcon(g.attributes, this.renderer);
     }
 
     // TODO make override in geojson layer
@@ -455,7 +451,7 @@ export default class AttribFC extends BaseFC {
      * @param options {Object} options to provide filters and helpful information.
      * @returns {Array} set of features that satisfy the criteria
      */
-    queryFeatures(options: QueryFeaturesParams): Promise<Array<GetGraphicResult>> {
+    async queryFeatures(options: QueryFeaturesParams): Promise<Array<GetGraphicResult>> {
         // NOTE this assumes a server based layer
         //      local based layers should override this function
 
@@ -465,16 +461,15 @@ export default class AttribFC extends BaseFC {
         //      we could trigger a getattributes call to bulk download them upfront.
         //      would be more efficient (way less web calls).
 
-        return this.queryOIDs(options).then(oids => {
-            // run result ids through our quick cache pipeline
-            const p: GetGraphicParams = {
-                getGeom: !!options.includeGeometry,
-                getAttribs: true,
-                map: options.map
-            };
-            const cacheQueue: Array<Promise<GetGraphicResult>> = oids.map(oid => this.getGraphic(oid, p));
-            return Promise.all(cacheQueue);
-        });
+        const oids = await this.queryOIDs(options);
+        // run result ids through our quick cache pipeline
+        const p: GetGraphicParams = {
+            getGeom: !!options.includeGeometry,
+            getAttribs: true,
+            map: options.map
+        };
+        const cacheQueue: Array<Promise<GetGraphicResult>> = oids.map(oid => this.getGraphic(oid, p));
+        return Promise.all(cacheQueue);
     }
 
     /**

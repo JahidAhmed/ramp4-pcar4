@@ -22,8 +22,9 @@ export class Query {
         this.config = config;
     }
 
-    search(): Promise<defs.NameResultList> {
-        return (<Promise<defs.RawNameResult>>this.jsonRequest(this.getUrl())).then(r => this.normalizeNameItems(r.items));
+    async search(): Promise<defs.NameResultList> {
+        const r = await (<Promise<defs.RawNameResult>>this.jsonRequest(this.getUrl()));
+        return this.normalizeNameItems(r.items);
     }
 
     private getUrl(): string {

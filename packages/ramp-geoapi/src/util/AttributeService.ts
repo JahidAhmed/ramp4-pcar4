@@ -137,7 +137,7 @@ export default class AttributeService extends BaseBase {
         return Promise.resolve(attSet);
     }
 
-    loadSingleFeature(details: GetGraphicServiceDetails): Promise<GetGraphicResult> {
+    async loadSingleFeature(details: GetGraphicServiceDetails): Promise<GetGraphicResult> {
         const params: esri.RequestOptions = {
             query: {
                 f: 'json',
@@ -162,30 +162,24 @@ export default class AttributeService extends BaseBase {
 
         const restReq = this.esriBundle.esriRequest(details.serviceUrl + '/query', params);
 
-        return restReq.then((serviceResult: esri.RequestResponse) => {
-            if (serviceResult.data && serviceResult.data.features) {
-                const feats: Array<any> = serviceResult.data.features;
-                 if (feats.length > 0) {
-
-                    const feat = feats[0];
-                    const result: GetGraphicResult = {
-                        attributes: feat.attributes // attributes are always there, so we always return them. letter caller decide to discard them or not.
-                    };
-
-                    if (details.includeGeometry) {
-                        // server result omits spatial reference
-                        feat.geometry.spatialReference = serviceResult.data.spatialReference;
-                        result.geometry = feat.geometry;
-                    }
-
-                    return result;
-
+        const serviceResult = await restReq;
+        if (serviceResult.data && serviceResult.data.features) {
+            const feats: Array<any> = serviceResult.data.features;
+            if (feats.length > 0) {
+                const feat = feats[0];
+                const result: GetGraphicResult = {
+                    attributes: feat.attributes // attributes are always there, so we always return them. letter caller decide to discard them or not.
+                };
+                if (details.includeGeometry) {
+                    // server result omits spatial reference
+                    feat.geometry.spatialReference = serviceResult.data.spatialReference;
+                    result.geometry = feat.geometry;
                 }
+                return result;
             }
-
-            // if we got this far, we failed to get something
-            throw new Error(`Could not locate feature ${details.oid} for layer ${details.serviceUrl}`);
-        });
+        }
+        // if we got this far, we failed to get something
+        throw new Error(`Could not locate feature ${details.oid} for layer ${details.serviceUrl}`);
     }
 
 }

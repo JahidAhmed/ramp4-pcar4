@@ -38,7 +38,7 @@ export default class QueryService extends BaseBase {
 
     // for now, the any is attributes. figure why just return the ids when everything is local;
     // would just need another loop to map ids to attributes.
-    geoJsonQuery(options: QueryFeaturesGeoJsonParams): Promise<Array<GetGraphicResult>> {
+    async geoJsonQuery(options: QueryFeaturesGeoJsonParams): Promise<Array<GetGraphicResult>> {
         // NOTE in ESRI4, you cant just dig into the underlying feature arrays of a layer.
         //      so we use a blank query if there is no geometry.
         const query = new this.esriBundle.Query();
@@ -49,19 +49,17 @@ export default class QueryService extends BaseBase {
             query.spatialRelationship = 'intersects';
         }
 
-        return (<esri.FeatureLayer>options.layer.innerLayer).queryFeatures(query).then(featSet => {
-            let feats: any = featSet.features;
-            if (options.filterSql && feats.length > 0) {
-                // aql
-                feats = this.sqlAttributeFilter(feats, options.filterSql, true);
-            }
-
-            // convert to our type. seems a bit wasteful, maybe find better way
-            return feats.map(f => ({
-                attributes: f.attributes,
-                geometry: f.geometry
-            }));
-        });
+        const featSet = await (<esri.FeatureLayer>options.layer.innerLayer).queryFeatures(query);
+        let feats: any = featSet.features;
+        if (options.filterSql && feats.length > 0) {
+            // aql
+            feats = this.sqlAttributeFilter(feats, options.filterSql, true);
+        }
+        // convert to our type. seems a bit wasteful, maybe find better way
+        return feats.map(f => ({
+            attributes: f.attributes,
+            geometry: f.geometry
+        }));
     }
 
     // TODO think about splitting up a lot of the below functions into server specific

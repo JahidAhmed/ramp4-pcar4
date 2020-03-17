@@ -82,7 +82,7 @@ export default class GeoJsonFC extends AttribFC {
      *                 - getAttribs       boolean. indicates if return value should have attributes included. default to false
      * @returns {Promise} resolves with a bundle of information. .graphic is the graphic; .layerFC for convenience
      */
-    getGraphic (objectId: number, opts: GetGraphicParams): Promise<GetGraphicResult> {
+    async getGraphic (objectId: number, opts: GetGraphicParams): Promise<GetGraphicResult> {
 
         const gjOpt: QueryFeaturesParams = {
             filterSql: `${this.oidField}=${objectId}`,
@@ -94,14 +94,14 @@ export default class GeoJsonFC extends AttribFC {
         //      if thats a problem, add some logic to pare off properties of the result (might need to clone
         //      to avoid breaking original source in the layer)
 
-        return this.queryFeatures(gjOpt).then(resultArr => {
-            if (resultArr.length === 0) {
-                throw new Error(`Could not find object id ${objectId}`);
-            } else if (resultArr.length !== 1) {
-                console.warn('did not get a single result on a query for a specific object id');
-            }
-            return resultArr[0];
-        });
+        const resultArr = await this.queryFeatures(gjOpt);
+        if (resultArr.length === 0) {
+            throw new Error(`Could not find object id ${objectId}`);
+        }
+        else if (resultArr.length !== 1) {
+            console.warn('did not get a single result on a query for a specific object id');
+        }
+        return resultArr[0];
     }
 
     // TODO we are using the getgraphci type as it's an unbound loosely typed feature
@@ -124,7 +124,7 @@ export default class GeoJsonFC extends AttribFC {
 
     // TODO this is more of a utility function. leaving it public as it might be useful, revist when
     //      the app is mature.
-    queryOIDs(options: QueryFeaturesParams): Promise<Array<number>> {
+    async queryOIDs(options: QueryFeaturesParams): Promise<Array<number>> {
 
         const gjOpt: QueryFeaturesGeoJsonParams = {
             layer: (<GeoJsonLayer>this.parentLayer),
@@ -133,7 +133,8 @@ export default class GeoJsonFC extends AttribFC {
 
         // run the query. since geojson is local, the util always returns everything.
         // iterate through the results and strip out the OIDs
-        return this.gapi.utils.query.geoJsonQuery(gjOpt).then(gjFeats => gjFeats.map(feat => feat.attributes[this.oidField]));
+        const gjFeats = await this.gapi.utils.query.geoJsonQuery(gjOpt);
+        return gjFeats.map(feat => feat.attributes[this.oidField]);
     }
 
     /**

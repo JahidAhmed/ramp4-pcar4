@@ -68,20 +68,17 @@ export class Map extends MapBase {
 
     zoomMapTo(extent: Extent): Promise<void>;
     zoomMapTo(centerPoint: Point, mapScale: number): Promise<void>;
-    zoomMapTo(geom: BaseGeometry, scale?: number): Promise<void> {
+    async zoomMapTo(geom: BaseGeometry, scale?: number): Promise<void> {
         // TODO technically this can accept any geometry. should we open up the suggested signatures to allow various things?
 
-        return this.geomToMapSR(geom).then(g => {
-            const zoomP: any = {
-                target: this.gapi.utils.geom.geomRampToEsri(g)
-            };
-
-            if (g.type === GeometryType.POINT) {
-                zoomP.scale = scale;
-            }
-
-            return this.innerView.goTo(zoomP);
-        });
+        const g = await this.geomToMapSR(geom);
+        const zoomP: any = {
+            target: this.gapi.utils.geom.geomRampToEsri(g)
+        };
+        if (g.type === GeometryType.POINT) {
+            zoomP.scale = scale;
+        }
+        return this.innerView.goTo(zoomP);
 
     }
 

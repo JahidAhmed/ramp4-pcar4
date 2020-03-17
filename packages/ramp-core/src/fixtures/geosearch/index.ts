@@ -23,7 +23,7 @@ class GeosearchFixture extends FixtureConfigHelper {
                 id: 'geosearch-component'
             }
         };
-        this.$iApi.panel.open(geosearchPanel);
+        // this.$iApi.panel.open(geosearchPanel);
     }
 
     removed() {

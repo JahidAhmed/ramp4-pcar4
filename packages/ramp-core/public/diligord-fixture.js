@@ -116,7 +116,7 @@
 
         added() {
             // this life hook is called when the fixture is added to R4MP, and now it's possible to open our panel
-            this.$iApi.panel.open(dPanel1);
+            // this.$iApi.panel.open(dPanel1);
         }
     };
 
