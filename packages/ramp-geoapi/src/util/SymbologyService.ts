@@ -660,6 +660,7 @@ export default class SymbologyService extends BaseBase {
                 label: firstSu.label || '',
                 definitionClause: suSet.length === 1 ? firstSu.definitionClause : `(${suSet.map(su => su.definitionClause).join(' OR ')})`,
                 svgcode: '', // TODO is '' ok? maybe we need white square svg? or some loading icon?
+                visibility: true,
                 drawPromise: this.symbolToSvg(firstSu.symbol).then(svg => {
                     // update the legend symbol object
                     legendSym.svgcode = svg;

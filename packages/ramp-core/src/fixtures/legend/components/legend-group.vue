@@ -19,6 +19,9 @@
 
                 <!-- visibility -->
                 <checkbox :value="legendItem.visibility" :isRadio="props && props.isVisibilitySet" :legendItem="legendItem" />
+            <!-- visibility -->
+            <!-- <div @click="legendItem.toggleExpanded();">
+                <checkbox :value="legendItem" :isRadio="props && props.isVisibilitySet" :legendItem="legendItem"/> -->
             </div>
             <tooltip position="top-left">{{ $t(legendItem.expanded ? 'legend.group.collapse' : 'legend.group.expand') }}</tooltip>
         </div>

@@ -23,6 +23,9 @@
 
                 <!-- visibility -->
                 <checkbox :value="visibility" :isRadio="props && props.isVisibilitySet" :legendItem="legendItem" />
+            <!-- visibility -->
+            <div>
+                <!-- <checkbox :value="legendItem" :isRadio="props && props.isVisibilitySet" :legendItem="legendItem"/> -->
             </div>
             <tooltip position="top-left">{{ $t('legend.entry.data') }}</tooltip>
         </div>
@@ -39,6 +42,8 @@
 
                 <!-- TODO: add visibility button functionality. It should toggle each symbol individually. -->
                 <checkbox :value="visibility" :legendItem="legendItem" />
+                <!--  TODO need to figure out how to check individual item visibility through initial query on load, incase its false to begin with. right now everything is toggled true initially -->
+                <!-- <checkbox :value="item" :legendItem="legendItem"/> -->
             </div>
         </div>
     </div>
@@ -71,6 +76,9 @@ export default class LegendEntryV extends Vue {
         this.legendItem.layer!.visibilityChanged.listen((visibility: boolean) => {
             this.visibility = this.legendItem.visibility;
         });
+        // this.legendItem.layer?.visibilityChanged.listen((visibility: boolean) => {
+        //     this.visibility = this.legendItem.layer?.getLegend().some(item => item.visibility === true);
+        // })
     }
 
     /**
