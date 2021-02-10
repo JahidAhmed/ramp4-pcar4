@@ -17,19 +17,19 @@ az login -u $AZ_LOGIN_NAME -p $AZ_PASSWORD --service-principal --tenant $AZ_TENA
 
 DESTDIR="demo"
 
-if [ "$TRAVIS_REPO_SLUG" == "ramp4-pcar4/ramp4-pcar4" ]; then
+# removed references to travis repos below to replace them with updated github workflow
+if [ "$GITHUB_REPOSITORY" == "ramp4-pcar4/ramp4-pcar4" ]; then
 
     if [ -n "$TRAVIS_TAG" ]; then
         # tags and branches from the upstream repo go into separate folders
         DESTDIR="$DESTDIR/tags/$TRAVIS_TAG"
     else
-        DESTDIR="$DESTDIR/branches/$TRAVIS_BRANCH"
+        DESTDIR="$DESTDIR/branches/$GITHUB_REF"
     fi
 
 else
     # builds from fork branches go into corresponding user folders
-    USER=${TRAVIS_REPO_SLUG/\/ramp4-pcar4/}
-    DESTDIR="$DESTDIR/users/$USER/$TRAVIS_BRANCH"
+    DESTDIR="$DESTDIR/users/$GITHUB_ACTOR/$GITHUB_REF"
 fi
 
 echo "Destintation: $DESTDIR"
